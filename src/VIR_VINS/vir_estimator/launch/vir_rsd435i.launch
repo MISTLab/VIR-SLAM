@@ -1,0 +1,56 @@
+<launch>
+    <!--arg name="config_path" default = "$(find feature_tracker)/../config/realsense/realsense_d435_self.yaml" /-->
+
+    <arg name="euroc_config" default = "$(find vir_feature_tracker)/../config/euroc/euroc_config.yaml" />
+    <arg name="realsense_color_spiri_config" default = "$(find vir_feature_tracker)/../config/realsense/realsense_d435i_me.yaml" />
+
+    <arg name="config_path" value="$(arg realsense_color_spiri_config)"/>
+
+    <arg name="enable_sim_uwb" default="1"/>
+    <arg name="enable_real_uwb_module" default="0"/>
+    <arg name="enable_uwb_posegraph" default="0"/>
+    <arg name="enable_loopclosure" default="1"/>
+
+
+    <arg name="vins_path" default = "$(find vir_feature_tracker)/../config/../" />
+
+    <node name="vir_feature_tracker" pkg="vir_feature_tracker" type="vir_feature_tracker" output="log">
+        <param name="config_file" type="string" value="$(arg config_path)" />
+        <param name="vins_folder" type="string" value="$(arg vins_path)" />
+    </node>
+
+    <node name="vir_estimator" pkg="vir_estimator" type="vir_estimator" output="screen">
+       <param name="config_file" type="string" value="$(arg config_path)" />
+       <param name="vins_folder" type="string" value="$(arg vins_path)" />
+    </node>
+
+
+    <!--node name="pose_graph" pkg="pose_graph" type="pose_graph" output="screen" if="$(eval enable_loopclosure == 1)">
+        <param name="config_file" type="string" value="$(arg config_path)" />
+        <param name="visualization_shift_x" type="int" value="0" />
+        <param name="visualization_shift_y" type="int" value="0" />
+        <param name="skip_cnt" type="int" value="0" />
+        <param name="skip_dis" type="double" value="0" />
+    </node-->
+
+    <node pkg="uwb_posegraph" type="uwb_posegraph" name="uwb_posegraph" 
+      if="$(eval enable_uwb_posegraph == 1)">
+      <param name="enable_uwb_posegraph" type="int" value="$(arg enable_uwb_posegraph)"/>
+    </node>
+
+    <node pkg="utlitypkg" type="utlitypkg_node" name="groundtruth" 
+      if="$(eval enable_sim_uwb == 1)">
+    </node>
+
+    <node pkg="uwb_pypkg" type="uwb_node.py" name="uwb_node" 
+      if="$(eval enable_real_uwb_module == 1)">
+    </node>
+
+    <node pkg="uwb_pypkg" type="uwb_outlierRej.py" name="uwb_ourlierRej" />
+
+    <!-- <include file="$(find mavros)/launch/spiri.launch" />
+    <include file="$(find realsense2_camera)/launch/monocolor.launch" /> -->
+
+    
+</launch>
+

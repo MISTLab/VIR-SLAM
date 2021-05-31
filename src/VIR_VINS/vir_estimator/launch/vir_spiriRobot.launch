@@ -1,0 +1,41 @@
+<launch>
+    <!--arg name="config_path" default = "$(find feature_tracker)/../config/realsense/realsense_d435_self.yaml" /-->
+
+    <arg name="euroc_config" default = "$(find feature_tracker)/../config/euroc/euroc_config.yaml" />
+    <arg name="realsense_color_spiri_config" default = "$(find feature_tracker)/../config/realsense/realsense_spiri.yaml" />
+
+    <arg name="config_path" value="$(arg realsense_color_spiri_config)"/>
+
+    <arg name="enable_sim_uwb" default="0"/>
+    <arg name="enable_real_uwb_module" default="1"/>
+    <arg name="enable_loopclosure" default="1"/>
+
+
+    <arg name="vins_path" default = "$(find feature_tracker)/../config/../" />
+
+    <node name="feature_tracker" pkg="feature_tracker" type="feature_tracker" output="log">
+        <param name="config_file" type="string" value="$(arg config_path)" />
+        <param name="vins_folder" type="string" value="$(arg vins_path)" />
+    </node>
+
+    <node name="vins_estimator" pkg="vins_estimator" type="vins_estimator" output="screen">
+       <param name="config_file" type="string" value="$(arg config_path)" />
+       <param name="vins_folder" type="string" value="$(arg vins_path)" />
+    </node>
+
+    <node pkg="utlitypkg" type="utlitypkg_node" name="groundtruth" 
+      if="$(eval enable_sim_uwb == 1)">
+    </node>
+
+    <node pkg="uwb_pypkg" type="uwb_node.py" name="uwb_node" 
+      if="$(eval enable_real_uwb_module == 1)">
+    </node>
+
+    <!--node pkg="uwb_pypkg" type="uwb_outlierRej.py" name="uwb_ourlierRej" /-->
+
+    <!--include file="$(find mavros)/launch/spiri.launch" />
+    <include file="$(find realsense2_camera)/launch/monocolor.launch" /-->
+
+    
+</launch>
+
